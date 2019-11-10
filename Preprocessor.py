@@ -4,9 +4,9 @@ import os
 from sklearn.preprocessing import StandardScaler
 import pickle
 
-final_file_name = 'data/test_proc.tsv'
-train_file_name = 'data/train.tsv'
-test_file_name = 'data/test.tsv'
+FINAL_FILE_NAME = 'data/test_proc.tsv'
+TRAIN_FILE_NAME = 'data/train.tsv'
+TEST_FILE_NAME = 'data/test.tsv'
 
 
 class Preprocessor:
@@ -47,7 +47,7 @@ class Preprocessor:
         df_.columns = [a.format(b) for a, b in df_.columns.values]
         return df_
 
-    def fit(self, file_name=train_file_name):
+    def fit(self, file_name=TRAIN_FILE_NAME):
         df = pd.read_csv(file_name, sep='\t')
         df = self.prepare_file(df)
         df = self.features_list_to_columns(df)
@@ -56,7 +56,7 @@ class Preprocessor:
         st.fit(df)
         pickle.dump(st, open(self.normalizer_file_name, 'wb'))
 
-    def run(self, file_name, chunk_size=10**1):
+    def run(self, file_name, chunk_size=10**5):
         print('Preprocessing has started')
         i = 0
         for chunk in pd.read_csv(file_name, sep='\t', chunksize=chunk_size):
@@ -70,7 +70,7 @@ class Preprocessor:
             df_transform = self.feature_columns_to_str(df_transform)
             df_final = df_final.join(df_transform)
 
-            self.save_chunk(df_final, file_name=final_file_name)
+            self.save_chunk(df_final, file_name=FINAL_FILE_NAME)
             i += 1
         print('done!')
 
@@ -86,7 +86,7 @@ class Preprocessor:
     @staticmethod
     def save_chunk(df, file_name):
         header = not os.path.isfile(file_name)
-        with open(final_file_name, 'a') as f:
+        with open(file_name, 'a') as f:
             df.to_csv(f, sep='\t', header=header)
 
     @staticmethod
@@ -103,4 +103,4 @@ if __name__ == '__main__':
     normalizer = StandardScaler()
     p = Preprocessor()
     p.fit()
-    p.run(test_file_name)
+    p.run(TEST_FILE_NAME)
